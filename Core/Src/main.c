@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "utils.h"
+#include "ds18b20.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -58,85 +59,8 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-//void delay_us(uint16_t us){
-//	__HAL_TIM_SET_COUNTER(&htim3,0);
-//	while(__HAL_TIM_GET_COUNTER(&htim3) < us);
-//}
-//
-//void Set_Pin_Output(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin){
-//	GPIO_InitTypeDef GPIO_InitStruct = {0};
-//	GPIO_InitStruct.Pin = GPIO_Pin;
-//	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-//	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-//	HAL_GPIO_Init(GPIOx, &GPIO_InitStruct);
-//}
-//
-//void Set_Pin_Input(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin){
-//	GPIO_InitTypeDef GPIO_InitStruct = {0};
-//	GPIO_InitStruct.Pin = GPIO_Pin;
-//	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-//	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-//	GPIO_InitStruct.Pull = GPIO_NOPULL;
-//	HAL_GPIO_Init(GPIOx, &GPIO_InitStruct);
-//}
 
-uint8_t DS18B20_Start(void){
-	uint8_t response = 0;
-	Set_Pin_Output(DS18B20_GPIO_Port, DS18B20_Pin);
-	HAL_GPIO_WritePin(DS18B20_GPIO_Port, DS18B20_Pin, 0);
-	delay_us(480);
 
-	Set_Pin_Input(DS18B20_GPIO_Port, DS18B20_Pin);
-	delay_us(80);
-
-	if(!HAL_GPIO_ReadPin(DS18B20_GPIO_Port, DS18B20_Pin)){
-		response = 1;
-	}
-	else{
-		response = -1;
-	}
-
-	delay_us(400);
-
-	return response;
-}
-
-void DS18B20_Write(uint8_t data){
-	Set_Pin_Output(DS18B20_GPIO_Port, DS18B20_Pin);
-	for(int i = 0; i < 8; i++){
-		//Write 1
-		if((data & (1 << i)) !=0){
-			Set_Pin_Output(DS18B20_GPIO_Port, DS18B20_Pin);
-			HAL_GPIO_WritePin(DS18B20_GPIO_Port, DS18B20_Pin, 0);
-			delay_us(1);
-
-			Set_Pin_Input(DS18B20_GPIO_Port, DS18B20_Pin);
-			delay_us(60);
-		}else{
-		//Write 0
-			Set_Pin_Output(DS18B20_GPIO_Port, DS18B20_Pin);
-			HAL_GPIO_WritePin(DS18B20_GPIO_Port, DS18B20_Pin, 0);
-			delay_us(60);
-			Set_Pin_Input(DS18B20_GPIO_Port, DS18B20_Pin);
-		}
-	}
-}
-
-uint8_t DS18B20_Read(void){
-	uint8_t value = 0;
-	Set_Pin_Input(DS18B20_GPIO_Port, DS18B20_Pin);
-	for(int i = 0; i < 8 ; i++){
-		Set_Pin_Output(DS18B20_GPIO_Port, DS18B20_Pin);
-		HAL_GPIO_WritePin(DS18B20_GPIO_Port, DS18B20_Pin,0);
-		delay_us(2);
-		Set_Pin_Input(DS18B20_GPIO_Port, DS18B20_Pin);
-		if(HAL_GPIO_ReadPin(DS18B20_GPIO_Port, DS18B20_Pin)){
-			value |= 1<<i;
-		}
-		delay_us(50);
-	}
-	return value;
-}
 /* USER CODE END 0 */
 
 /**
@@ -174,6 +98,9 @@ int main(void)
   uint8_t temp1, temp2;
   uint16_t temperature;
   uint8_t msg[30];
+  sprintf(&msg, "\nBooting Environment\r\n");
+  HAL_UART_Transmit(&huart2,  msg, sizeof(msg), 10);
+  HAL_Delay(2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -181,14 +108,14 @@ int main(void)
   while (1)
   {
 	 memset(msg, 0, sizeof(msg));
-	 uint8_t sensor = DS18B20_Start();
-	 HAL_Delay(1);
+	 DS18B20_Start();
+	 //HAL_Delay(1);
 	 DS18B20_Write(0xCC);
 	 DS18B20_Write(0x44);
 	 HAL_Delay(800);
 
-	 sensor = DS18B20_Start();
-	 HAL_Delay(1);
+	 DS18B20_Start();
+	 //HAL_Delay(1);
 	 DS18B20_Write(0xCC);
 	 DS18B20_Write(0xBE);
 	 temp1 = DS18B20_Read();
