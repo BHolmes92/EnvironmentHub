@@ -28,6 +28,7 @@
 #include <string.h>
 #include "utils.h"
 #include "ds18b20.h"
+#include "lcd.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -98,9 +99,12 @@ int main(void)
   uint8_t temp1, temp2;
   uint16_t temperature;
   uint8_t msg[30];
+  char lcd_msg[15];
   sprintf(&msg, "\nBooting Environment\r\n");
   HAL_UART_Transmit(&huart2,  msg, sizeof(msg), 10);
   HAL_Delay(2);
+  init_lcd();
+  send_string_lcd("Booting");
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -108,6 +112,7 @@ int main(void)
   while (1)
   {
 	 memset(msg, 0, sizeof(msg));
+	 memset(lcd_msg, 0, sizeof(msg));
 	 DS18B20_Start();
 	 //HAL_Delay(1);
 	 DS18B20_Write(0xCC);
@@ -123,7 +128,11 @@ int main(void)
 	 temperature = (temp2<<8) | temp1;
 	 temperature = (float)temperature/16;
 	 sprintf(&msg, "Temperature: %dC\r\n", temperature);
+	 sprintf(&lcd_msg,"Temp: %dC", temperature);
 	 HAL_UART_Transmit(&huart2,  msg, sizeof(msg), 10);
+	 clear_lcd();
+	 HAL_Delay(1);
+	 send_string_lcd(lcd_msg);
 	 HAL_Delay(1000);
 
     /* USER CODE END WHILE */
