@@ -19,6 +19,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f4xx_hal_tim.h"
+#include "stdio.h"
+#include "string.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -175,15 +177,14 @@ int main(void)
   HAL_TIM_Base_Start(&htim3);
   uint8_t temp1, temp2;
   uint16_t temperature;
+  char msg[30];
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	 /*HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-	 delay_us(500);*/
-
+	 memset(msg, 0, sizeof(msg));
 	 uint8_t sensor = DS18B20_Start();
 	 HAL_Delay(1);
 	 DS18B20_Write(0xCC);
@@ -198,6 +199,8 @@ int main(void)
 	 temp2 = DS18B20_Read();
 	 temperature = (temp2<<8) | temp1;
 	 temperature = (float)temperature/16;
+	 sprintf(msg, "Temperature: %dC\r\n", temperature);
+	 HAL_UART_Transmit(&huart2, msg, sizeof(msg), 10);
 	 HAL_Delay(1000);
 
     /* USER CODE END WHILE */
