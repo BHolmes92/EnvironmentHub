@@ -17,10 +17,12 @@ uint8_t SHT11_Start(void); //Establish sensor
 
 uint8_t SHT11_Write(uint8_t cmd);//Write Command to Sensor
 
-uint8_t SHT11_Read(void); //Read Sensor
-
 void SHT11_Init_Transmission(void);
 
 void SHT11_Write_Address(void);
+
+uint16_t SHT11_Read(void);
+
+void SHT11_Reset(void);
 
 #endif /* INC_SHT11_H_ */
