@@ -29,6 +29,7 @@
 #include "utils.h"
 #include "ds18b20.h"
 #include "lcd.h"
+#include "sht11.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -112,7 +113,7 @@ int main(void)
   while (1)
   {
 	 memset(msg, 0, sizeof(msg));
-	 memset(lcd_msg, 0, sizeof(msg));
+	 memset(lcd_msg, 0, sizeof(lcd_msg));
 	 DS18B20_Start();
 	 //HAL_Delay(1);
 	 DS18B20_Write(0xCC);
@@ -128,11 +129,20 @@ int main(void)
 	 temperature = (temp2<<8) | temp1;
 	 temperature = (float)temperature/16;
 	 sprintf(&msg, "Temperature: %dC\r\n", temperature);
-	 sprintf(&lcd_msg,"Temp: %dC", temperature);
+	 sprintf(&lcd_msg,"Temp: %d%cC", temperature,223);
 	 HAL_UART_Transmit(&huart2,  msg, sizeof(msg), 10);
 	 clear_lcd();
 	 HAL_Delay(1);
 	 send_string_lcd(lcd_msg);
+	 uint8_t cmd_valid;
+	 SHT11_Reset();
+	 HAL_Delay(15);
+	 cmd_valid = SHT11_Write(0x03);
+	 uint16_t valueT = 0;
+	 uint16_t valueH = 0;
+	 valueT = SHT11_Read();
+	 cmd_valid = SHT11_Write(0x05);
+	 valueH = SHT11_Read();
 	 HAL_Delay(1000);
 
     /* USER CODE END WHILE */
